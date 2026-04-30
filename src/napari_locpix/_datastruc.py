@@ -155,19 +155,17 @@ class item:
                 the image for visualisation"""
 
         # get max and min x/y/(z) values
-        df_max = self.df.max()
-        df_min = self.df.min()
+        x_max = self.df[self.x_col].max()
+        x_min = self.df[self.x_col].min()
+        y_max = self.df[self.y_col].max()
+        y_min = self.df[self.y_col].min()
 
         if self.dim == 2:
             x_bins, y_bins = histo_size
-            x_max = df_max[self.x_col][0]
-            y_max = df_max[self.y_col][0]
-            x_min = df_min[self.x_col][0]
-            y_min = df_min[self.y_col][0]
         elif self.dim == 3:
             x_bins, y_bins, z_bins = histo_size
-            z_max = df_max[self.z_col][0]
-            z_min = df_min[self.z_col][0]
+            z_max = self.df[self.z_col].max()
+            z_min = self.df[self.z_col].min()
 
         # if instead want desired bin size e.g. 50nm, 50nm, 50nm
         # number of bins required for desired bin_size
@@ -223,7 +221,7 @@ class item:
         if self.dim == 3:
             # 3D histogram for every channel, assigned to self.histo (dict)
             for chan in self.channels:
-                df = self.df[self.df[self.chan_col] == chan]
+                df = self.df.filter(self.df[self.chan_col] == chan)
                 sample = np.array(
                     (df[self.x_col], df[self.y_col], df[self.z_col])
                 )
@@ -350,15 +348,15 @@ class item:
         if self.dim == 2:
 
             # create dataframe
-            flatten_mask = np.ravel(self.histo_mask)
-            mesh_grid = np.meshgrid(
-                range(self.histo_mask.shape[0]),
-                range(self.histo_mask.shape[1]),
-            )
-            x_pixel = np.ravel(mesh_grid[1])
-            y_pixel = np.ravel(mesh_grid[0])
-            label = flatten_mask
-            data = {"x_pixel": x_pixel, "y_pixel": y_pixel, "gt_label": label}
+            y_pixel, x_pixel = np.indices(self.histo_mask.shape)
+            label = self.histo_mask.ravel()
+
+            data = {
+                "x_pixel": x_pixel.ravel(),
+                "y_pixel": y_pixel.ravel(),
+                "gt_label": label,
+            }
+
             mask_df = pl.DataFrame(
                 data,
                 schema=[
