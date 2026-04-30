@@ -7,7 +7,9 @@ see: https://napari.org/stable/plugins/guides.html?#widgets
 """
 from typing import TYPE_CHECKING
 
+import napari
 import polars as pl
+
 from qtpy import QtCore
 from qtpy.compat import getopenfilename, getsavefilename
 from qtpy.QtGui import QIntValidator
@@ -650,3 +652,20 @@ class DatastrucWidget(QWidget):
 
         elif self.dim == 3:
             print("segment 3D image")
+
+
+def open_datastruc_widget():
+    viewer = napari.current_viewer()
+    if viewer is None:
+        raise RuntimeError("No active napari viewer")
+
+    widget = DatastrucWidget(viewer)
+
+    viewer.window.add_dock_widget(
+        widget,
+        name="Annotate",
+        area="right",  # optional, remove if you want default
+        add_vertical_stretch=False,
+    )
+
+    return QWidget()
