@@ -5,9 +5,9 @@ It implements the Widget specification.
 see: https://napari.org/stable/plugins/guides.html?#widgets
 
 """
+
 from typing import TYPE_CHECKING
 
-import napari
 import polars as pl
 
 from qtpy import QtCore
@@ -54,7 +54,7 @@ class DatastrucWidget(QWidget):
         # avoid multiple firing of button due to history
         try:
             load_raw_btn.clicked.disconnect()
-        except:
+        except TypeError:
             pass
         load_raw_btn.clicked.connect(self._load_raw_data_fd)
 
@@ -62,7 +62,7 @@ class DatastrucWidget(QWidget):
         # avoid multiple firing of button due to history
         try:
             load_annot_btn.clicked.disconnect()
-        except:
+        except TypeError:
             pass
         load_annot_btn.clicked.connect(self._load_annot_data_fd)
 
@@ -76,7 +76,7 @@ class DatastrucWidget(QWidget):
         # avoid multiple firing of button due to history
         try:
             write_csv_btn.clicked.disconnect()
-        except:
+        except TypeError:
             pass
         write_csv_btn.clicked.connect(self._write_csv_fd)
 
@@ -84,7 +84,7 @@ class DatastrucWidget(QWidget):
         # avoid multiple firing of button due to history
         try:
             write_parquet_btn.clicked.disconnect()
-        except:
+        except TypeError:
             pass
         write_parquet_btn.clicked.connect(self._write_parquet_fd)
 
@@ -286,7 +286,7 @@ class DatastrucWidget(QWidget):
         # avoid multiple firing of button due to history
         try:
             self.render_button.clicked.disconnect()
-        except:
+        except TypeError:
             pass
         self.render_button.clicked.connect(
             lambda: self._render_button(path, file_type)
@@ -366,7 +366,7 @@ class DatastrucWidget(QWidget):
         # avoid multiple firing of button due to history
         try:
             self.render_button_annot.clicked.disconnect()
-        except:
+        except TypeError:
             pass
         self.render_button_annot.clicked.connect(
             lambda: self._render_button_annot()
@@ -439,7 +439,7 @@ class DatastrucWidget(QWidget):
         self.datastruc.save_df_to_csv(
             path,
             drop_zero_label=drop_zero_label,
-            drop_pixel_col=True,  # has to be true to avoid double occurence later
+            drop_pixel_col=True,  # true to avoid double occurence later
             save_chan_label=True,
         )
 
@@ -496,7 +496,7 @@ class DatastrucWidget(QWidget):
         self.datastruc.save_to_parquet(
             path,
             drop_zero_label=drop_zero_label,
-            drop_pixel_col=True,  # has to be true to avoid double occurence later
+            drop_pixel_col=True,  # true to avoid double occurence later
             gt_label_map=gt_label_map,
             overwrite=False,
         )
@@ -623,7 +623,10 @@ class DatastrucWidget(QWidget):
                 for index, chan in enumerate(self.datastruc.channels):
                     self.viewer.add_image(
                         self.datastruc.histo[chan].T,
-                        name=f"Channel {chan}/{self.datastruc.chan_2_label(chan)}",
+                        name=(
+                            f"Channel {chan}/"
+                            f"{self.datastruc.chan_2_label(chan)}"
+                        ),
                         rgb=False,
                         blending="additive",
                         colormap=colormap_list[index],
@@ -633,11 +636,15 @@ class DatastrucWidget(QWidget):
 
             # only one channel
             else:
-                img = self.datastruc.histo[self.datastruc.channels[0]].T
+                chan0 = self.datastruc.channels[0]
+                img = self.datastruc.histo[chan0].T
                 # add image to existing viewer
                 self.viewer.add_image(
                     img,
-                    name=f"Channel {self.datastruc.channels[0]}/{self.datastruc.chan_2_label(self.datastruc.channels[0])}",
+                    name=(
+                        f"Channel {chan0}/"
+                        f"{self.datastruc.chan_2_label(chan0)}"
+                    ),
                     rgb=False,
                     gamma=2,
                     contrast_limits=[0, 30],
