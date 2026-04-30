@@ -6,8 +6,7 @@ see: https://napari.org/stable/plugins/guides.html?#widgets
 
 """
 
-from typing import TYPE_CHECKING
-
+import napari
 import polars as pl
 
 from qtpy import QtCore
@@ -28,9 +27,6 @@ from qtpy.QtWidgets import (
 )
 
 from ._datastruc import file_to_datastruc, item
-
-if TYPE_CHECKING:
-    import napari
 
 
 class DatastrucWidget(QWidget):
