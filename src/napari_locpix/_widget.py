@@ -415,7 +415,7 @@ class DatastrucWidget(QWidget):
 
         # convert pixel labels to coordinate
         try:
-            self.datastruc.histo_mask = self.viewer.layers["Labels"].data.T
+            self.datastruc.histo_mask = self.viewer.layers["Labels"].data
             self.datastruc._manual_seg_pixel_2_coord()
         except KeyError:
             print("No labels saved")
@@ -457,7 +457,7 @@ class DatastrucWidget(QWidget):
 
         # convert pixel labels to coordinate
         try:
-            self.datastruc.histo_mask = self.viewer.layers["Labels"].data.T
+            self.datastruc.histo_mask = self.viewer.layers["Labels"].data
             self.datastruc._manual_seg_pixel_2_coord()
 
             # if finds labels then can get label map as well

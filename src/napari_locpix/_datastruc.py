@@ -350,15 +350,15 @@ class item:
         if self.dim == 2:
 
             # create dataframe
-            flatten_mask = np.ravel(self.histo_mask)
-            mesh_grid = np.meshgrid(
-                range(self.histo_mask.shape[0]),
-                range(self.histo_mask.shape[1]),
-            )
-            x_pixel = np.ravel(mesh_grid[1])
-            y_pixel = np.ravel(mesh_grid[0])
-            label = flatten_mask
-            data = {"x_pixel": x_pixel, "y_pixel": y_pixel, "gt_label": label}
+            y_pixel, x_pixel = np.indices(self.histo_mask.shape)
+            label = self.histo_mask.ravel()
+
+            data = {
+                "x_pixel": x_pixel.ravel(),
+                "y_pixel": y_pixel.ravel(),
+                "gt_label": label,
+            }
+
             mask_df = pl.DataFrame(
                 data,
                 schema=[
