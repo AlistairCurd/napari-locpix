@@ -15,6 +15,7 @@ from napari_locpix import DatastrucWidget
 
 
 # test load raw
+@pytest.mark.gui
 def test_load_raw_parquet(make_napari_viewer):
 
     # test file path
@@ -30,6 +31,7 @@ def test_load_raw_parquet(make_napari_viewer):
     widget._load_raw_data(test_file_path)
 
 
+@pytest.mark.gui
 def test_load_raw_csv(make_napari_viewer):
 
     # test file path
@@ -48,6 +50,7 @@ def test_load_raw_csv(make_napari_viewer):
 # test load annotate
 
 
+@pytest.mark.gui
 def test_load_annot_parquet(make_napari_viewer):
 
     # test file path
@@ -111,6 +114,7 @@ def setup_test_write_parquet(make_napari_viewer):
     os.remove(out_test_file_path)
 
 
+@pytest.mark.gui
 def test_write_parquet(setup_test_write_parquet):
 
     (
@@ -157,13 +161,16 @@ def setup_test_write_csv(make_napari_viewer):
     os.remove(out_test_file_path)
 
 
-# def test_write_csv(setup_test_write_csv):
+@pytest.mark.gui
+@pytest.mark.skip(reason="Loading CSVs with annotation not implemented yet")
+def test_write_csv(setup_test_write_csv):
 
-#    in_table, out_table = setup_test_write_csv
+    in_table, out_table = setup_test_write_csv
 
-#    assert assert_frame_equal(in_table, out_table)
+    assert assert_frame_equal(in_table, out_table)
 
 
+@pytest.mark.gui
 def test_add_labels(make_napari_viewer):
 
     # test file path
@@ -188,6 +195,7 @@ def test_add_labels(make_napari_viewer):
     widget._add_label()
 
 
+@pytest.mark.gui
 def test_render_button_parquet(make_napari_viewer):
 
     # test file path
@@ -206,6 +214,7 @@ def test_render_button_parquet(make_napari_viewer):
     widget._render_button(test_file_path, file_type="parquet")
 
 
+@pytest.mark.gui
 def test_render_button_csv(make_napari_viewer):
 
     # test file path
@@ -224,6 +233,7 @@ def test_render_button_csv(make_napari_viewer):
     widget._render_button(test_file_path, file_type="csv")
 
 
+@pytest.mark.gui
 def test_render_button_annot_parquet(make_napari_viewer):
 
     # test file path
