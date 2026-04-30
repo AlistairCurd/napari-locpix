@@ -634,8 +634,8 @@ class DatastrucWidget(QWidget):
             # only one channel
             else:
                 img = self.datastruc.histo[self.datastruc.channels[0]].T
-                # create the viewer and add the image
-                self.viewer = napari.add_image(
+                # add image to existing viewer
+                self.viewer.add_image(
                     img,
                     name=f"Channel {self.datastruc.channels[0]}/{self.datastruc.chan_2_label(self.datastruc.channels[0])}",
                     rgb=False,
