@@ -283,12 +283,12 @@ class item:
         self.df = self.df.select(
             [
                 pl.all(),
-                pl.col(self.x_col)
-                .map(lambda q: (q - x_min) / x_pixel_width)
-                .alias("x_pixel"),
-                pl.col(self.y_col)
-                .map(lambda q: (q - y_min) / y_pixel_width)
-                .alias("y_pixel"),
+                ((pl.col(self.x_col) - x_min) / x_pixel_width).alias(
+                    "x_pixel"
+                ),
+                ((pl.col(self.y_col) - y_min) / y_pixel_width).alias(
+                    "y_pixel"
+                ),
             ]
         )
         # floor the pixel locations
@@ -320,9 +320,9 @@ class item:
             self.df = self.df.select(
                 [
                     pl.all(),
-                    pl.col(self.z_col)
-                    .map(lambda q: (q - z_min) / z_pixel_width)
-                    .alias("z_pixel"),
+                    ((pl.col(self.z_col) - z_min) / z_pixel_width).alias(
+                        "z_pixel"
+                    ),
                 ]
             )
             # floor the pixel locations
