@@ -247,6 +247,9 @@ class DatastrucWidget(QWidget):
             label_layout.addWidget(QLineEdit(""), label, 1)
             self.label_widget.setLayout(label_layout)
 
+    def _get_columns_from_lazyframe(self, df: pl.LazyFrame):
+        self.columns = df.collect_schema().names()
+
     def _load_raw_data_fd(self):
 
         # load data into datastruc
@@ -287,11 +290,12 @@ class DatastrucWidget(QWidget):
         self.render_button.clicked.connect(
             lambda: self._render_button(path, file_type)
         )
-        self.channel_col_menu.addItems(df.columns)
+        self._get_columns_from_lazyframe(df)
+        self.channel_col_menu.addItems(self.columns)
         self.frame_col_menu.addItem("None")
-        self.frame_col_menu.addItems(df.columns)
-        self.x_col_menu.addItems(df.columns)
-        self.y_col_menu.addItems(df.columns)
+        self.frame_col_menu.addItems(self.columns)
+        self.x_col_menu.addItems(self.columns)
+        self.y_col_menu.addItems(self.columns)
 
         # try and find matching
         channel_index = self.channel_col_menu.findText(
@@ -368,11 +372,12 @@ class DatastrucWidget(QWidget):
             lambda: self._render_button_annot()
         )
 
-        self.channel_col_menu.addItems(df.columns)
+        self._get_columns_from_lazyframe(df)
+        self.channel_col_menu.addItems(self.columns)
         self.frame_col_menu.addItem("None")
-        self.frame_col_menu.addItems(df.columns)
-        self.x_col_menu.addItems(df.columns)
-        self.y_col_menu.addItems(df.columns)
+        self.frame_col_menu.addItems(self.columns)
+        self.x_col_menu.addItems(self.columns)
+        self.y_col_menu.addItems(self.columns)
 
         # try and find matching
         channel_index = self.channel_col_menu.findText(
