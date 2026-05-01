@@ -1,17 +1,21 @@
 name: napari-locpix
 display_name: napari-locpix
+
 contributions:
   commands:
     - id: napari-locpix.make_sample_data
       python_name: napari_locpix._sample_data:make_sample_data
       title: Load sample data from napari-locpix
-    - id: napari-locpix.widget
-      python_name: napari_locpix._widget:DatastrucWidget
+
+    - id: napari-locpix.open_widget
+      python_name: napari_locpix._widget:open_datastruc_widget
       title: Annotate
+
   sample_data:
     - command: napari-locpix.make_sample_data
       display_name: napari-locpix
       key: unique_id.1
+
   widgets:
-    - command: napari-locpix.widget
+    - command: napari-locpix.open_widget
       display_name: Annotate

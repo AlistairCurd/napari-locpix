@@ -5,9 +5,10 @@ It implements the Widget specification.
 see: https://napari.org/stable/plugins/guides.html?#widgets
 
 """
-from typing import TYPE_CHECKING
 
+import napari
 import polars as pl
+
 from qtpy import QtCore
 from qtpy.compat import getopenfilename, getsavefilename
 from qtpy.QtGui import QIntValidator
@@ -26,9 +27,6 @@ from qtpy.QtWidgets import (
 )
 
 from ._datastruc import file_to_datastruc, item
-
-if TYPE_CHECKING:
-    import napari
 
 
 class DatastrucWidget(QWidget):
@@ -52,7 +50,7 @@ class DatastrucWidget(QWidget):
         # avoid multiple firing of button due to history
         try:
             load_raw_btn.clicked.disconnect()
-        except:
+        except TypeError:
             pass
         load_raw_btn.clicked.connect(self._load_raw_data_fd)
 
@@ -60,7 +58,7 @@ class DatastrucWidget(QWidget):
         # avoid multiple firing of button due to history
         try:
             load_annot_btn.clicked.disconnect()
-        except:
+        except TypeError:
             pass
         load_annot_btn.clicked.connect(self._load_annot_data_fd)
 
@@ -74,7 +72,7 @@ class DatastrucWidget(QWidget):
         # avoid multiple firing of button due to history
         try:
             write_csv_btn.clicked.disconnect()
-        except:
+        except TypeError:
             pass
         write_csv_btn.clicked.connect(self._write_csv_fd)
 
@@ -82,7 +80,7 @@ class DatastrucWidget(QWidget):
         # avoid multiple firing of button due to history
         try:
             write_parquet_btn.clicked.disconnect()
-        except:
+        except TypeError:
             pass
         write_parquet_btn.clicked.connect(self._write_parquet_fd)
 
@@ -249,6 +247,22 @@ class DatastrucWidget(QWidget):
             label_layout.addWidget(QLineEdit(""), label, 1)
             self.label_widget.setLayout(label_layout)
 
+    def _populate_column_menus(self, columns: list[str]):
+        """Clears and repopulates column options."""
+        for menu in (
+            self.channel_col_menu,
+            self.frame_col_menu,
+            self.x_col_menu,
+            self.y_col_menu,
+        ):
+            menu.clear()
+
+        self.channel_col_menu.addItems(columns)
+        self.frame_col_menu.addItem("None")
+        self.frame_col_menu.addItems(columns)
+        self.x_col_menu.addItems(columns)
+        self.y_col_menu.addItems(columns)
+
     def _load_raw_data_fd(self):
 
         # load data into datastruc
@@ -259,9 +273,16 @@ class DatastrucWidget(QWidget):
         # first part is path; second part is path filter
         path = path[0]
 
+        # Return silently if no path selected
+        if not path:
+            return
+
         self._load_raw_data(path)
 
     def _load_raw_data(self, path):
+        # Return silently if no path selected
+        if not path:
+            return
 
         # if user wants to change cmap let them do this in napari
         # post rendering -i.e. keep this as is
@@ -284,16 +305,13 @@ class DatastrucWidget(QWidget):
         # avoid multiple firing of button due to history
         try:
             self.render_button.clicked.disconnect()
-        except:
+        except TypeError:
             pass
         self.render_button.clicked.connect(
             lambda: self._render_button(path, file_type)
         )
-        self.channel_col_menu.addItems(df.columns)
-        self.frame_col_menu.addItem("None")
-        self.frame_col_menu.addItems(df.columns)
-        self.x_col_menu.addItems(df.columns)
-        self.y_col_menu.addItems(df.columns)
+        columns = df.collect_schema().names()
+        self._populate_column_menus(columns)
 
         # try and find matching
         channel_index = self.channel_col_menu.findText(
@@ -364,17 +382,14 @@ class DatastrucWidget(QWidget):
         # avoid multiple firing of button due to history
         try:
             self.render_button_annot.clicked.disconnect()
-        except:
+        except TypeError:
             pass
         self.render_button_annot.clicked.connect(
             lambda: self._render_button_annot()
         )
 
-        self.channel_col_menu.addItems(df.columns)
-        self.frame_col_menu.addItem("None")
-        self.frame_col_menu.addItems(df.columns)
-        self.x_col_menu.addItems(df.columns)
-        self.y_col_menu.addItems(df.columns)
+        columns = df.collect_schema().names()
+        self._populate_column_menus(columns)
 
         # try and find matching
         channel_index = self.channel_col_menu.findText(
@@ -417,7 +432,7 @@ class DatastrucWidget(QWidget):
 
         # convert pixel labels to coordinate
         try:
-            self.datastruc.histo_mask = self.viewer.layers["Labels"].data.T
+            self.datastruc.histo_mask = self.viewer.layers["Labels"].data
             self.datastruc._manual_seg_pixel_2_coord()
         except KeyError:
             print("No labels saved")
@@ -437,7 +452,7 @@ class DatastrucWidget(QWidget):
         self.datastruc.save_df_to_csv(
             path,
             drop_zero_label=drop_zero_label,
-            drop_pixel_col=True,  # has to be true to avoid double occurence later
+            drop_pixel_col=True,  # true to avoid double occurence later
             save_chan_label=True,
         )
 
@@ -459,7 +474,7 @@ class DatastrucWidget(QWidget):
 
         # convert pixel labels to coordinate
         try:
-            self.datastruc.histo_mask = self.viewer.layers["Labels"].data.T
+            self.datastruc.histo_mask = self.viewer.layers["Labels"].data
             self.datastruc._manual_seg_pixel_2_coord()
 
             # if finds labels then can get label map as well
@@ -494,7 +509,7 @@ class DatastrucWidget(QWidget):
         self.datastruc.save_to_parquet(
             path,
             drop_zero_label=drop_zero_label,
-            drop_pixel_col=True,  # has to be true to avoid double occurence later
+            drop_pixel_col=True,  # true to avoid double occurence later
             gt_label_map=gt_label_map,
             overwrite=False,
         )
@@ -621,7 +636,10 @@ class DatastrucWidget(QWidget):
                 for index, chan in enumerate(self.datastruc.channels):
                     self.viewer.add_image(
                         self.datastruc.histo[chan].T,
-                        name=f"Channel {chan}/{self.datastruc.chan_2_label(chan)}",
+                        name=(
+                            f"Channel {chan}/"
+                            f"{self.datastruc.chan_2_label(chan)}"
+                        ),
                         rgb=False,
                         blending="additive",
                         colormap=colormap_list[index],
@@ -631,11 +649,15 @@ class DatastrucWidget(QWidget):
 
             # only one channel
             else:
-                img = self.datastruc.histo[self.datastruc.channels[0]].T
-                # create the viewer and add the image
-                self.viewer = napari.add_image(
+                chan0 = self.datastruc.channels[0]
+                img = self.datastruc.histo[chan0].T
+                # add image to existing viewer
+                self.viewer.add_image(
                     img,
-                    name=f"Channel {self.datastruc.channels[0]}/{self.datastruc.chan_2_label(self.datastruc.channels[0])}",
+                    name=(
+                        f"Channel {chan0}/"
+                        f"{self.datastruc.chan_2_label(chan0)}"
+                    ),
                     rgb=False,
                     gamma=2,
                     contrast_limits=[0, 30],
@@ -650,3 +672,20 @@ class DatastrucWidget(QWidget):
 
         elif self.dim == 3:
             print("segment 3D image")
+
+
+def open_datastruc_widget():
+    viewer = napari.current_viewer()
+    if viewer is None:
+        raise RuntimeError("No active napari viewer")
+
+    widget = DatastrucWidget(viewer)
+
+    viewer.window.add_dock_widget(
+        widget,
+        name="Annotate",
+        area="right",  # optional, remove if you want default
+        add_vertical_stretch=False,
+    )
+
+    return QWidget()
