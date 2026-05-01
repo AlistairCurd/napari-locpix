@@ -247,8 +247,21 @@ class DatastrucWidget(QWidget):
             label_layout.addWidget(QLineEdit(""), label, 1)
             self.label_widget.setLayout(label_layout)
 
-    def _get_columns_from_lazyframe(self, df: pl.LazyFrame):
-        self.columns = df.collect_schema().names()
+    def _populate_column_menus(self, columns: list[str]):
+        """Clears and repopulates column options."""
+        for menu in (
+            self.channel_col_menu,
+            self.frame_col_menu,
+            self.x_col_menu,
+            self.y_col_menu,
+        ):
+            menu.clear()
+
+        self.channel_col_menu.addItems(columns)
+        self.frame_col_menu.addItem("None")
+        self.frame_col_menu.addItems(columns)
+        self.x_col_menu.addItems(columns)
+        self.y_col_menu.addItems(columns)
 
     def _load_raw_data_fd(self):
 
@@ -290,12 +303,8 @@ class DatastrucWidget(QWidget):
         self.render_button.clicked.connect(
             lambda: self._render_button(path, file_type)
         )
-        self._get_columns_from_lazyframe(df)
-        self.channel_col_menu.addItems(self.columns)
-        self.frame_col_menu.addItem("None")
-        self.frame_col_menu.addItems(self.columns)
-        self.x_col_menu.addItems(self.columns)
-        self.y_col_menu.addItems(self.columns)
+        columns = df.collect_schema().names()
+        self._populate_column_menus(columns)
 
         # try and find matching
         channel_index = self.channel_col_menu.findText(
@@ -372,12 +381,8 @@ class DatastrucWidget(QWidget):
             lambda: self._render_button_annot()
         )
 
-        self._get_columns_from_lazyframe(df)
-        self.channel_col_menu.addItems(self.columns)
-        self.frame_col_menu.addItem("None")
-        self.frame_col_menu.addItems(self.columns)
-        self.x_col_menu.addItems(self.columns)
-        self.y_col_menu.addItems(self.columns)
+        columns = df.collect_schema().names()
+        self._populate_column_menus(columns)
 
         # try and find matching
         channel_index = self.channel_col_menu.findText(
