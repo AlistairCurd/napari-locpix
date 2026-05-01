@@ -273,9 +273,16 @@ class DatastrucWidget(QWidget):
         # first part is path; second part is path filter
         path = path[0]
 
+        # Return silently if no path selected
+        if not path:
+            return
+
         self._load_raw_data(path)
 
     def _load_raw_data(self, path):
+        # Return silently if no path selected
+        if not path:
+            return
 
         # if user wants to change cmap let them do this in napari
         # post rendering -i.e. keep this as is
