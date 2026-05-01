@@ -77,7 +77,7 @@ Channels labels allows you to give a real name label to each of the channels e.g
 
 Using the render button you can render the loaded in data according to the histogram settings
 
-X/Y bins defines the number of bins for the histogram
+X/Y bins defines the number of bins for the histogram. Use the X/Y bins ratio to retain the original aspect ratio of the FOV (or close) in the visualisation, if desired. The aspect ratio in this rendering does not affect the underlying localisation position data.
 
 Vis interpolation defines how to interpolate the image before viewing
 
@@ -85,9 +85,9 @@ Vis interpolation defines how to interpolate the image before viewing
 
 Annotations can be added using Napari's viewer.
 
-Simply click the add Labels.
+Click on the Napari button to create a new labels layer.
 
-Note that this software will expect the labels to be called "Labels"
+Rename the new labels layer to "Labels", otherwise the annotations will not be saved.
 
 ## Contributing
 
