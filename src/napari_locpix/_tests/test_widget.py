@@ -5,6 +5,7 @@ import polars as pl
 import pyarrow.parquet as pq
 import pytest
 from polars.testing import assert_frame_equal
+from unittest.mock import MagicMock, patch
 from qtpy.QtWidgets import QWidget
 
 from napari_locpix._widget import open_datastruc_widget, DatastrucWidget
@@ -254,26 +255,25 @@ def test_render_button_annot_parquet(make_napari_viewer):
     widget._render_button_annot()
 
 
-def test_open_datastruc_widget_adds_dock_widget(qtbot):
-    # Create a napari viewer
-    viewer = napari.Viewer()
-    qtbot.addWidget(viewer.window._qt_window)
+def test_open_datastruc_widget_adds_dock_widget():
+    mock_viewer = MagicMock()
+    mock_window = MagicMock()
+    mock_viewer.window = mock_window
 
-    returned = open_datastruc_widget()
+    with patch("napari.current_viewer", return_value=mock_viewer):
+        returned = open_datastruc_widget()
 
-    # Does it return as expected
+    # Return value
     assert isinstance(returned, QWidget)
 
-    # Is it added to the dock widgets
-    dock_widgets = viewer.window.dock_widgets
+    # Verify dock widget was added correctly
+    mock_window.add_dock_widget.assert_called_once()
+    args, kwargs = mock_window.add_dock_widget.call_args
 
-    assert any(
-        isinstance(widget, DatastrucWidget)
-        for widget in dock_widgets.values()
-    )
+    assert isinstance(args[0], DatastrucWidget)
 
-    # Is it named correctly
-    assert "Annotate" in dock_widgets
+    # Check name
+    assert kwargs["name"] == "Annotate"
 
 
 def test_open_datastruc_widget_no_viewer(monkeypatch):
