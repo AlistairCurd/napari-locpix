@@ -1,11 +1,13 @@
 import os
 
+import napari
 import polars as pl
 import pyarrow.parquet as pq
 import pytest
 from polars.testing import assert_frame_equal
+from qtpy.QtWidgets import QWidget
 
-from napari_locpix import DatastrucWidget
+from napari_locpix._widget import open_datastruc_widget, DatastrucWidget
 
 # add label adds widget
 
@@ -250,6 +252,35 @@ def test_render_button_annot_parquet(make_napari_viewer):
 
     # render
     widget._render_button_annot()
+
+
+def test_open_datastruc_widget_adds_dock_widget(qtbot):
+    # Create a napari viewer
+    viewer = napari.Viewer()
+    qtbot.addWidget(viewer.window._qt_window)
+
+    returned = open_datastruc_widget()
+
+    # Does it return as expected
+    assert isinstance(returned, QWidget)
+
+    # Is it added to the dock widgets
+    dock_widgets = viewer.window.dock_widgets
+
+    assert any(
+        isinstance(widget, DatastrucWidget)
+        for widget in dock_widgets.values()
+    )
+
+    # Is it named correctly
+    assert "Annotate" in dock_widgets
+
+
+def test_open_datastruc_widget_no_viewer(monkeypatch):
+    monkeypatch.setattr(napari, "current_viewer", lambda: None)
+
+    with pytest.raises(RuntimeError, match="No active napari viewer"):
+        open_datastruc_widget()
 
 
 # make_napari_viewer is a pytest fixture that returns a napari viewer object

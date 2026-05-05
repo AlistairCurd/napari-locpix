@@ -15,3 +15,8 @@ line_length = 79
 markers = [
     "gui: tests that require a Qt GUI / napari viewer",
 ]
+
+filterwarnings = [
+    # vispy noise
+    "ignore::DeprecationWarning:vispy",
+]
