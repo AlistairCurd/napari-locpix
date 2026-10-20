@@ -33,8 +33,8 @@ class item:
             If manual annotation is done an additional column 'gt_label'
             will be present
         dim (int): Dimensions of data
-        channels (list): list of ints, representing channels user wants
-            to consider in the original data
+        channels (list): list of channels user wants
+            to consider in the original data, e.g. ints or strings.
         channel_label (list of strings) : The label for each channel
             i.e. ['egfr', 'ereg','unk'] means
             channel 0 is egfr protein, channel 1 is ereg proteins and
@@ -117,7 +117,7 @@ class item:
         Args:
             chan (int) : Integer representing the channel"""
 
-        return self.channel_label[chan]
+        return self.channel_label[self.channels.index(chan)]
 
     def label_2_chan(self, label):
         """Returns the channel associated with the channel label
@@ -132,7 +132,7 @@ class item:
                 "The label specified is not present in" "the channel labels"
             )
 
-        return self.channel_label.index(label)
+        return self.channels[self.channel_label.index(label)]
 
     def coord_2_histo(
         self,
