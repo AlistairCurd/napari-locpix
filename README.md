@@ -23,6 +23,12 @@ https://napari.org/stable/plugins/index.html
 
 ## Installation
 
+### Compatibility
+
+Tested with napari 0.9.2.
+
+### Install
+
 Install napari via [pip]:
 
     pip install "napari[all]"
