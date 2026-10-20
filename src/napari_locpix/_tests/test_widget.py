@@ -49,6 +49,12 @@ def test_load_raw_csv(make_napari_viewer):
     # call widget method
     widget._load_raw_data(test_file_path)
 
+    label_layout = widget.label_widget.layout()
+    assert label_layout.itemAtPosition(0, 0).widget().text() == "0"
+    assert label_layout.itemAtPosition(1, 0).widget().text() == "1"
+    assert label_layout.itemAtPosition(0, 1).widget().text() == "background"
+    assert label_layout.itemAtPosition(1, 1).widget().text() == "foreground"
+
 
 # test load annotate
 
@@ -67,6 +73,52 @@ def test_load_annot_parquet(make_napari_viewer):
 
     # call widget method
     widget._load_annot_data(test_file_path)
+
+
+@pytest.mark.gui
+def test_label_map_widget_loads_parquet_map_and_resets_for_raw_data(
+    make_napari_viewer,
+):
+    widget = DatastrucWidget(make_napari_viewer())
+    label_layout = widget.label_widget.layout()
+    assert label_layout.itemAtPosition(0, 0).widget().text() == "0"
+    assert label_layout.itemAtPosition(1, 0).widget().text() == "1"
+    assert label_layout.itemAtPosition(0, 1).widget().text() == "background"
+    assert label_layout.itemAtPosition(1, 1).widget().text() == "foreground"
+
+    widget._load_annot_data("src/napari_locpix/_tests/annot_test.parquet")
+    label_layout = widget.label_widget.layout()
+    assert label_layout.itemAtPosition(0, 1).widget().text() == "background"
+    assert label_layout.itemAtPosition(1, 1).widget().text() == "membrane"
+
+    widget._load_raw_data("src/napari_locpix/_tests/raw_test.csv")
+    label_layout = widget.label_widget.layout()
+    assert label_layout.itemAtPosition(0, 1).widget().text() == "background"
+    assert label_layout.itemAtPosition(1, 1).widget().text() == "foreground"
+
+
+@pytest.mark.gui
+def test_write_parquet_saves_label_map_without_labels_layer(
+    make_napari_viewer, tmp_path
+):
+    widget = DatastrucWidget(make_napari_viewer())
+    test_file_path = "src/napari_locpix/_tests/raw_test.csv"
+
+    widget._load_raw_data(test_file_path)
+    widget._render_button(test_file_path, file_type="csv")
+    assert "Labels" not in widget.viewer.layers
+
+    label_layout = widget.label_widget.layout()
+    label_layout.itemAtPosition(0, 1).widget().setText("background")
+    label_layout.itemAtPosition(1, 1).widget().setText("foreground")
+
+    output_path = tmp_path / "label_map.parquet"
+    widget._write_parquet(str(output_path))
+
+    metadata = pq.read_schema(output_path).metadata
+    assert metadata[b"gt_label_map"] == (
+        b'{"0": "background", "1": "foreground"}'
+    )
 
 
 # def test_load_annot_csv(make_napari_viewer):

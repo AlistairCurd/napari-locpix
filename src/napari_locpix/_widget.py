@@ -8,11 +8,11 @@ see: https://napari.org/stable/plugins/guides.html?#widgets
 
 import napari
 import polars as pl
-
 from qtpy import QtCore
 from qtpy.compat import getopenfilename, getsavefilename
 from qtpy.QtGui import QIntValidator
 from qtpy.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QFormLayout,
     QGridLayout,
@@ -23,7 +23,6 @@ from qtpy.QtWidgets import (
     QStackedLayout,
     QVBoxLayout,
     QWidget,
-    QCheckBox,
 )
 
 from ._datastruc import file_to_datastruc, item
@@ -195,57 +194,62 @@ class DatastrucWidget(QWidget):
 
         # add to main
         self.outer_layout.addLayout(io)
+        self.label_widget = QWidget()
+        label_map_layout = QGridLayout()
+        self.label_widget.setLayout(label_map_layout)
+        self.outer_layout.addWidget(QLabel("Label map (parquet metadata)"))
+        self.outer_layout.addWidget(self.label_widget)
+        self._set_label_map({})
         self.outer_layout.addLayout(self.load_data_form)
         self.outer_layout.addLayout(self.render_form)
         self.setLayout(self.outer_layout)
 
+        self._connected_labels_layer = None
+
         # if add labels layer
         self.viewer.layers.events.inserted.connect(self._wrap_labels)
+        self._wrap_labels()
         # self.viewer.layers["Labels"].selected_label.connect(self._test)
 
-    def _wrap_labels(self):
+    def _set_label_map(self, label_map):
+        label_layout = self.label_widget.layout()
+        while label_layout.count():
+            item = label_layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
 
-        if "Labels" in self.viewer.layers:
-            labels_layer = self.viewer.layers["Labels"]
+        labels = label_map or {0: "background", 1: "foreground"}
+        for row, (label, name) in enumerate(sorted(labels.items())):
+            label_layout.addWidget(QLabel(str(label)), row, 0)
+            label_layout.addWidget(QLineEdit(str(name)), row, 1)
 
-            # add
-            widget = self.render_form.currentWidget()
-            layout = widget.layout()
+    def _wrap_labels(self, *_):
+        if "Labels" not in self.viewer.layers:
+            return
 
-            # title
-            layout.addRow(QLabel("Label map"))
-
-            # stores all labels
-            self.label_widget = QWidget()
-            label_layout = QGridLayout()
-
-            # one label
-            label_layout.addWidget(QLabel("0"), 0, 0)
-            label_layout.addWidget(QLineEdit(""), 0, 1)
-            label_layout.addWidget(QLabel("1"), 1, 0)
-            label_layout.addWidget(QLineEdit(""), 1, 1)
-            self.label_widget.setLayout(label_layout)
-
-            # add label
-            layout.addRow(self.label_widget)
-            widget.setLayout(layout)
-
-            # button connect
+        labels_layer = self.viewer.layers["Labels"]
+        if labels_layer is not self._connected_labels_layer:
             labels_layer.events.selected_label.connect(self._add_label)
-        else:
-            pass
+            self._connected_labels_layer = labels_layer
 
-    def _add_label(self):
+    def _add_label(self, *_):
 
         label = self.viewer.layers["Labels"].selected_label
 
         label_layout = self.label_widget.layout()
 
-        # label
-        if label_layout.itemAtPosition(label, 0) is None:
-            label_layout.addWidget(QLabel(f"{label}"), label, 0)
-            label_layout.addWidget(QLineEdit(""), label, 1)
-            self.label_widget.setLayout(label_layout)
+        for row in range(label_layout.rowCount()):
+            label_item = label_layout.itemAtPosition(row, 0)
+            if (
+                label_item is not None
+                and int(label_item.widget().text()) == label
+            ):
+                return
+
+        row = label_layout.rowCount()
+        label_layout.addWidget(QLabel(f"{label}"), row, 0)
+        label_layout.addWidget(QLineEdit(""), row, 1)
 
     def _populate_column_menus(self, columns: list[str]):
         """Clears and repopulates column options."""
@@ -283,6 +287,8 @@ class DatastrucWidget(QWidget):
         # Return silently if no path selected
         if not path:
             return
+
+        self._set_label_map({})
 
         # if user wants to change cmap let them do this in napari
         # post rendering -i.e. keep this as is
@@ -366,6 +372,7 @@ class DatastrucWidget(QWidget):
             self.datastruc = None
             self.datastruc = item(None, None, None, None, None)
             self.datastruc.load_from_parquet(path)
+            self._set_label_map(self.datastruc.gt_label_map)
             # load channel labels
             channel_label = self.datastruc.channel_label
             self.channel_zero_label.setText(channel_label[0])
@@ -471,28 +478,24 @@ class DatastrucWidget(QWidget):
         self._write_parquet(path)
 
     def _write_parquet(self, path):
+        gt_label_map = {}
+        label_layout = self.label_widget.layout()
+
+        for row in range(label_layout.rowCount()):
+            label_item = label_layout.itemAtPosition(row, 0)
+            name_item = label_layout.itemAtPosition(row, 1)
+            if label_item is not None and name_item is not None:
+                label_int = int(label_item.widget().text())
+                label_name = name_item.widget().text()
+                gt_label_map[label_int] = label_name
 
         # convert pixel labels to coordinate
         try:
             self.datastruc.histo_mask = self.viewer.layers["Labels"].data
             self.datastruc._manual_seg_pixel_2_coord()
 
-            # if finds labels then can get label map as well
-            # label = self.viewer.layers["Labels"].selected_label
-
-            gt_label_map = {}
-            label_layout = self.label_widget.layout()
-
-            for i in range(label_layout.rowCount()):
-                label_int = int(
-                    label_layout.itemAtPosition(i, 0).widget().text()
-                )
-                label_name = label_layout.itemAtPosition(i, 1).widget().text()
-                gt_label_map[label_int] = label_name
-
         except KeyError:
             print("No labels saved")
-            gt_label_map = {}
 
         # drop zero labels
         drop_zero_label = self.drop_zero_box.isChecked()
@@ -601,20 +604,6 @@ class DatastrucWidget(QWidget):
             self._render_histo(histo_size, vis_interpolation, labels=False)
         else:
             self._render_histo(histo_size, vis_interpolation, labels=True)
-            self.label_widget.layout().itemAtPosition(0, 1).widget().setText(
-                gt_label_map[0]
-            )
-            self.label_widget.layout().itemAtPosition(1, 1).widget().setText(
-                gt_label_map[1]
-            )
-            # add names
-            label_layout = self.label_widget.layout()
-            for i in gt_label_map.items():
-                label, name = i
-                if label != 0 and label != 1:
-                    label_layout.addWidget(QLabel(f"{label}"), label, 0)
-                    label_layout.addWidget(QLineEdit(f"{name}"), label, 1)
-                    self.label_widget.setLayout(label_layout)
 
     def _render_histo(self, histo_size, vis_interpolation, labels=False):
 
