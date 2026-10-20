@@ -382,7 +382,9 @@ class DatastrucWidget(QWidget):
             # scan df
             df = pl.scan_parquet(path)
         elif file_type == "csv":
-            raise ValueError("Not implemented yet!")
+            raise ValueError(
+                "Loading annotations from CSV not implemented yet!"
+            )
 
         # update form
         self.render_form.setCurrentIndex(1)
