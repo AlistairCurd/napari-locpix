@@ -628,8 +628,7 @@ class DatastrucWidget(QWidget):
                     self.viewer.add_image(
                         self.datastruc.histo[chan].T,
                         name=(
-                            f"Channel {chan}/"
-                            f"{self.datastruc.chan_2_label(chan)}"
+                            f"{chan}/" f"{self.datastruc.chan_2_label(chan)}"
                         ),
                         rgb=False,
                         blending="additive",
@@ -645,10 +644,7 @@ class DatastrucWidget(QWidget):
                 # add image to existing viewer
                 self.viewer.add_image(
                     img,
-                    name=(
-                        f"Channel {chan0}/"
-                        f"{self.datastruc.chan_2_label(chan0)}"
-                    ),
+                    name=(f"{chan0}/" f"{self.datastruc.chan_2_label(chan0)}"),
                     rgb=False,
                     gamma=2,
                     contrast_limits=[0, 30],
