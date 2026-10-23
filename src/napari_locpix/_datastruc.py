@@ -33,8 +33,8 @@ class item:
             If manual annotation is done an additional column 'gt_label'
             will be present
         dim (int): Dimensions of data
-        channels (list): list of ints, representing channels user wants
-            to consider in the original data
+        channels (list): list of channels user wants
+            to consider in the original data, e.g. ints or strings.
         channel_label (list of strings) : The label for each channel
             i.e. ['egfr', 'ereg','unk'] means
             channel 0 is egfr protein, channel 1 is ereg proteins and
@@ -73,11 +73,11 @@ class item:
         dim,
         channels,
         channel_label,
-        histo={},
+        histo=None,
         histo_edges=None,
-        histo_mask={},
+        histo_mask=None,
         bin_sizes=None,
-        gt_label_map={},
+        gt_label_map=None,
         x_col=None,
         y_col=None,
         z_col=None,
@@ -88,14 +88,14 @@ class item:
 
         self.name = name
         self.df = df
-        self.histo = histo
+        self.histo = {} if histo is None else histo
         self.histo_edges = histo_edges
-        self.histo_mask = histo_mask
+        self.histo_mask = {} if histo_mask is None else histo_mask
         self.dim = dim
         self.bin_sizes = bin_sizes
         self.channels = channels
         self.channel_label = channel_label
-        self.gt_label_map = gt_label_map
+        self.gt_label_map = {} if gt_label_map is None else gt_label_map
         self.x_col = x_col
         self.y_col = y_col
         self.z_col = z_col
@@ -103,13 +103,14 @@ class item:
         self.chan_col = chan_col
 
         # channel labels and channel choice need to be same in length
-        if (channels is not None) or (channel_label is not None):
-            if len(channels) > len(channel_label):
-                raise ValueError(
-                    f"Labels for each channel is length {len(channel_label)}\n"
-                    f"Channels is length {len(channels)}\n"
-                    f"There are more channels than labels"
-                )
+        if ((channels is not None) or (channel_label is not None)) and len(
+            channels
+        ) > len(channel_label):
+            raise ValueError(
+                f"Labels for each channel is length {len(channel_label)}\n"
+                f"Channels is length {len(channels)}\n"
+                f"There are more channels than labels"
+            )
 
     def chan_2_label(self, chan):
         """Returns the label associated with the channel specified
@@ -117,7 +118,7 @@ class item:
         Args:
             chan (int) : Integer representing the channel"""
 
-        return self.channel_label[chan]
+        return self.channel_label[self.channels.index(chan)]
 
     def label_2_chan(self, label):
         """Returns the channel associated with the channel label
@@ -132,12 +133,12 @@ class item:
                 "The label specified is not present in" "the channel labels"
             )
 
-        return self.channel_label.index(label)
+        return self.channels[self.channel_label.index(label)]
 
     def coord_2_histo(
         self,
         histo_size,
-        cmap=["Greens", "Reds", "Blues", "Purples"],
+        # cmap=["Greens", "Reds", "Blues", "Purples"],
         vis_interpolation="linear",
     ):
         """Converts localisations into histogram of desired size,
@@ -148,8 +149,8 @@ class item:
         Args:
             histo_size (tuple): Tuple representing number of
                 bins/pixels in x,y,z
-            cmap (list of strings) : The colourmaps used to
-                plot the histograms
+            # cmap (list of strings) : The colourmaps used to
+                plot the histograms - not currently used here
             plot (bool): Whether to plot the output
             vis_interpolation (string): How to inerpolate
                 the image for visualisation"""

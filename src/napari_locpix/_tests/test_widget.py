@@ -1,14 +1,14 @@
 import os
+from unittest.mock import MagicMock, patch
 
 import napari
 import polars as pl
 import pyarrow.parquet as pq
 import pytest
 from polars.testing import assert_frame_equal
-from unittest.mock import MagicMock, patch
 from qtpy.QtWidgets import QWidget
 
-from napari_locpix._widget import open_datastruc_widget, DatastrucWidget
+from napari_locpix._widget import DatastrucWidget, open_datastruc_widget
 
 # add label adds widget
 
