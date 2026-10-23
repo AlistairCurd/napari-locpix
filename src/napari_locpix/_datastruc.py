@@ -103,13 +103,14 @@ class item:
         self.chan_col = chan_col
 
         # channel labels and channel choice need to be same in length
-        if (channels is not None) or (channel_label is not None):
-            if len(channels) > len(channel_label):
-                raise ValueError(
-                    f"Labels for each channel is length {len(channel_label)}\n"
-                    f"Channels is length {len(channels)}\n"
-                    f"There are more channels than labels"
-                )
+        if ((channels is not None) or (channel_label is not None)) and len(
+            channels
+        ) > len(channel_label):
+            raise ValueError(
+                f"Labels for each channel is length {len(channel_label)}\n"
+                f"Channels is length {len(channels)}\n"
+                f"There are more channels than labels"
+            )
 
     def chan_2_label(self, chan):
         """Returns the label associated with the channel specified
