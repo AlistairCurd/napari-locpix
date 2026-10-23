@@ -73,11 +73,11 @@ class item:
         dim,
         channels,
         channel_label,
-        histo={},
+        histo=None,
         histo_edges=None,
-        histo_mask={},
+        histo_mask=None,
         bin_sizes=None,
-        gt_label_map={},
+        gt_label_map=None,
         x_col=None,
         y_col=None,
         z_col=None,
@@ -88,14 +88,14 @@ class item:
 
         self.name = name
         self.df = df
-        self.histo = histo
+        self.histo = {} if histo is None else histo
         self.histo_edges = histo_edges
-        self.histo_mask = histo_mask
+        self.histo_mask = {} if histo_mask is None else histo_mask
         self.dim = dim
         self.bin_sizes = bin_sizes
         self.channels = channels
         self.channel_label = channel_label
-        self.gt_label_map = gt_label_map
+        self.gt_label_map = {} if gt_label_map is None else gt_label_map
         self.x_col = x_col
         self.y_col = y_col
         self.z_col = z_col
@@ -137,7 +137,7 @@ class item:
     def coord_2_histo(
         self,
         histo_size,
-        cmap=["Greens", "Reds", "Blues", "Purples"],
+        # cmap=["Greens", "Reds", "Blues", "Purples"],
         vis_interpolation="linear",
     ):
         """Converts localisations into histogram of desired size,
@@ -148,8 +148,8 @@ class item:
         Args:
             histo_size (tuple): Tuple representing number of
                 bins/pixels in x,y,z
-            cmap (list of strings) : The colourmaps used to
-                plot the histograms
+            # cmap (list of strings) : The colourmaps used to
+                plot the histograms - not currently used here
             plot (bool): Whether to plot the output
             vis_interpolation (string): How to inerpolate
                 the image for visualisation"""
