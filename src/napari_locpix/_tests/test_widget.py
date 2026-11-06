@@ -56,6 +56,59 @@ def test_load_raw_csv(make_napari_viewer):
     assert label_layout.itemAtPosition(1, 1).widget().text() == "foreground"
 
 
+@pytest.mark.gui
+@pytest.mark.parametrize(
+    ("file_type", "channel_values", "expected_channels"),
+    [
+        ("csv", (20, 10), [10, 20]),
+        ("csv", ("zeta", "alpha"), ["alpha", "zeta"]),
+        ("parquet", (20, 10), [10, 20]),
+        ("parquet", ("zeta", "alpha"), ["alpha", "zeta"]),
+    ],
+)
+def test_render_data_with_integer_and_string_channels(
+    make_napari_viewer, tmp_path, file_type, channel_values, expected_channels
+):
+    data_path = tmp_path / f"channels.{file_type}"
+    data = pl.DataFrame(
+        {
+            "x": [0, 1, 2, 3],
+            "y": [0, 1, 2, 3],
+            "channel": [
+                channel_values[0],
+                channel_values[0],
+                channel_values[1],
+                channel_values[1],
+            ],
+            "frame": [0, 1, 0, 1],
+        }
+    )
+    if file_type == "csv":
+        data.write_csv(data_path)
+    else:
+        data.write_parquet(data_path)
+
+    widget = DatastrucWidget(make_napari_viewer())
+    widget.x_bins_menu.setText("4")
+    widget.y_bins_menu.setText("4")
+    widget.channel_zero_label.setText("first")
+    widget.channel_one_label.setText("second")
+
+    widget._load_raw_data(str(data_path))
+    widget._render_button(str(data_path), file_type=file_type)
+
+    assert widget.datastruc.channels == expected_channels
+    assert widget.datastruc.df["channel"].unique().sort().to_list() == (
+        expected_channels
+    )
+    assert [
+        widget.datastruc.chan_2_label(channel) for channel in expected_channels
+    ] == ["first", "second"]
+    assert [
+        widget.datastruc.label_2_chan(label) for label in ("first", "second")
+    ] == expected_channels
+
+
 # test load annotate
 
 
