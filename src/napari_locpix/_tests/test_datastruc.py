@@ -1,6 +1,5 @@
-import pytest
-
 import polars as pl
+import pytest
 
 from napari_locpix._datastruc import item
 

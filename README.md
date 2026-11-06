@@ -23,17 +23,25 @@ https://napari.org/stable/plugins/index.html
 
 ## Installation
 
+### Compatibility
+
+Tested with napari 0.9.2.
+
+### Install
+
 Install napari via [pip]:
 
     pip install "napari[all]"
 
 You can install `napari-locpix` via [pip]:
 
-    pip install napari-locpix
+    pip install napari-locpix2
 
 To install latest development version :
 
-    pip install git+https://github.com/oubino/napari-locpix.git
+    pip install git+https://github.com/AlistairCurd/napari-locpix.git
+
+> **Note:** `napari-locpix2` is the PyPI project name for this repository. The name on PyPI was changed from `napari-locpix` in `v0.0.8` to expedite new releases following the transfer of the repo from @oubino to @AlistairCurd.
 
 
 ## Usage
@@ -55,23 +63,16 @@ This plugin allows a user to
 
 The input data can be in the form of a .csv or .parquet.
 
-We expect there to be 4 columns at least, which should he identified inthe file column selection:
+We expect there to be 4 columns at least, which should he identified in the file column selection:
 
 * X coordinate
 * Y coordinate
 * Frame
 * Channel
 
-If the data has been annotated with this software we can also load this in.
-Note however we currently only support loading in annotated data saved as a .parquet folder.
-Therefore, we recommend always keeping a .parquet copy until loading in an annotated .csv
-is supported.
+If the data has been annotated with this software and written to a Parquet file, we can also load this in ("Load annotated data"). A napari Labels layer will overlay localisations previously annotated as foreground/gt_label:1 (see Annotations).
 
-The data can be outputted to a .parquet or a .csv
-
-Drop localisations with zero label, gives you the option to only save the localisations which have been annotated i.e. labels 1 and above.
-
-Channels labels allows you to give a real name label to each of the channels e.g. Chan 0 label: 'Alexa 647'
+Using "Load annotated data" is not currently supported for CSV files. However, the annotated data may still be read in with "Load raw data", and "gt_label" can be chosen as the Channel in File column selection (acquisition channel information will then not be rendered).
 
 ### Visualisation
 
@@ -83,11 +84,23 @@ Vis interpolation defines how to interpolate the image before viewing
 
 ### Annotations
 
-Annotations can be added using Napari's viewer.
+Annotations of localisations can be added using napari's viewer.
 
-Click on the Napari button to create a new labels layer.
+Click on the napari button to create a new Labels layer. Label localisations by overlaying with the polygon, paintbrush tool, etc.
 
-Rename the new labels layer to "Labels", otherwise the annotations will not be saved.
+Localisations will get a new column, "gt_label", when the data is written to CSV or Parquet. Localisations will have gt_label: 0, unless they are underneath the labels layer annotations, in which case they will have gt_label: 1.
+
+For saving in Parquet format, optionally change the names in the "Label map", which will be stored in metadata.
+
+Rename the new napari Labels layer to "Labels", otherwise the annotations will not be saved.
+
+### Output
+
+The data can be output to a .parquet or a .csv.
+
+"Drop localisations with zero label": This gives you the option to only save the localisations which have been annotated with the Labels layer.
+
+Channel labels allows you to give a real name label to each of the channels e.g. Chan 0 label: 'Alexa 647'
 
 ## Contributing
 

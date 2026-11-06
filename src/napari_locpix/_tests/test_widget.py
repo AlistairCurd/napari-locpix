@@ -1,14 +1,14 @@
 import os
+from unittest.mock import MagicMock, patch
 
 import napari
 import polars as pl
 import pyarrow.parquet as pq
 import pytest
 from polars.testing import assert_frame_equal
-from unittest.mock import MagicMock, patch
 from qtpy.QtWidgets import QWidget
 
-from napari_locpix._widget import open_datastruc_widget, DatastrucWidget
+from napari_locpix._widget import DatastrucWidget, open_datastruc_widget
 
 # add label adds widget
 
@@ -49,6 +49,65 @@ def test_load_raw_csv(make_napari_viewer):
     # call widget method
     widget._load_raw_data(test_file_path)
 
+    label_layout = widget.label_widget.layout()
+    assert label_layout.itemAtPosition(0, 0).widget().text() == "0"
+    assert label_layout.itemAtPosition(1, 0).widget().text() == "1"
+    assert label_layout.itemAtPosition(0, 1).widget().text() == "background"
+    assert label_layout.itemAtPosition(1, 1).widget().text() == "foreground"
+
+
+@pytest.mark.gui
+@pytest.mark.parametrize(
+    ("file_type", "channel_values", "expected_channels"),
+    [
+        ("csv", (20, 10), [10, 20]),
+        ("csv", ("zeta", "alpha"), ["alpha", "zeta"]),
+        ("parquet", (20, 10), [10, 20]),
+        ("parquet", ("zeta", "alpha"), ["alpha", "zeta"]),
+    ],
+)
+def test_render_data_with_integer_and_string_channels(
+    make_napari_viewer, tmp_path, file_type, channel_values, expected_channels
+):
+    data_path = tmp_path / f"channels.{file_type}"
+    data = pl.DataFrame(
+        {
+            "x": [0, 1, 2, 3],
+            "y": [0, 1, 2, 3],
+            "channel": [
+                channel_values[0],
+                channel_values[0],
+                channel_values[1],
+                channel_values[1],
+            ],
+            "frame": [0, 1, 0, 1],
+        }
+    )
+    if file_type == "csv":
+        data.write_csv(data_path)
+    else:
+        data.write_parquet(data_path)
+
+    widget = DatastrucWidget(make_napari_viewer())
+    widget.x_bins_menu.setText("4")
+    widget.y_bins_menu.setText("4")
+    widget.channel_zero_label.setText("first")
+    widget.channel_one_label.setText("second")
+
+    widget._load_raw_data(str(data_path))
+    widget._render_button(str(data_path), file_type=file_type)
+
+    assert widget.datastruc.channels == expected_channels
+    assert widget.datastruc.df["channel"].unique().sort().to_list() == (
+        expected_channels
+    )
+    assert [
+        widget.datastruc.chan_2_label(channel) for channel in expected_channels
+    ] == ["first", "second"]
+    assert [
+        widget.datastruc.label_2_chan(label) for label in ("first", "second")
+    ] == expected_channels
+
 
 # test load annotate
 
@@ -67,6 +126,52 @@ def test_load_annot_parquet(make_napari_viewer):
 
     # call widget method
     widget._load_annot_data(test_file_path)
+
+
+@pytest.mark.gui
+def test_label_map_widget_loads_parquet_map_and_resets_for_raw_data(
+    make_napari_viewer,
+):
+    widget = DatastrucWidget(make_napari_viewer())
+    label_layout = widget.label_widget.layout()
+    assert label_layout.itemAtPosition(0, 0).widget().text() == "0"
+    assert label_layout.itemAtPosition(1, 0).widget().text() == "1"
+    assert label_layout.itemAtPosition(0, 1).widget().text() == "background"
+    assert label_layout.itemAtPosition(1, 1).widget().text() == "foreground"
+
+    widget._load_annot_data("src/napari_locpix/_tests/annot_test.parquet")
+    label_layout = widget.label_widget.layout()
+    assert label_layout.itemAtPosition(0, 1).widget().text() == "background"
+    assert label_layout.itemAtPosition(1, 1).widget().text() == "membrane"
+
+    widget._load_raw_data("src/napari_locpix/_tests/raw_test.csv")
+    label_layout = widget.label_widget.layout()
+    assert label_layout.itemAtPosition(0, 1).widget().text() == "background"
+    assert label_layout.itemAtPosition(1, 1).widget().text() == "foreground"
+
+
+@pytest.mark.gui
+def test_write_parquet_saves_label_map_without_labels_layer(
+    make_napari_viewer, tmp_path
+):
+    widget = DatastrucWidget(make_napari_viewer())
+    test_file_path = "src/napari_locpix/_tests/raw_test.csv"
+
+    widget._load_raw_data(test_file_path)
+    widget._render_button(test_file_path, file_type="csv")
+    assert "Labels" not in widget.viewer.layers
+
+    label_layout = widget.label_widget.layout()
+    label_layout.itemAtPosition(0, 1).widget().setText("background")
+    label_layout.itemAtPosition(1, 1).widget().setText("foreground")
+
+    output_path = tmp_path / "label_map.parquet"
+    widget._write_parquet(str(output_path))
+
+    metadata = pq.read_schema(output_path).metadata
+    assert metadata[b"gt_label_map"] == (
+        b'{"0": "background", "1": "foreground"}'
+    )
 
 
 # def test_load_annot_csv(make_napari_viewer):
