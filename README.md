@@ -3,8 +3,8 @@
 [![License MIT](https://img.shields.io/pypi/l/napari-locpix.svg?color=green)](https://github.com/oubino/napari-locpix/raw/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/napari-locpix.svg?color=green)](https://pypi.org/project/napari-locpix)
 [![Python Version](https://img.shields.io/pypi/pyversions/napari-locpix.svg?color=green)](https://python.org)
-[![tests](https://github.com/oubino/napari-locpix/workflows/tests/badge.svg)](https://github.com/oubino/napari-locpix/actions)
-[![codecov](https://codecov.io/gh/oubino/napari-locpix/branch/main/graph/badge.svg)](https://codecov.io/gh/oubino/napari-locpix)
+[![tests](https://github.com/AlistairCurd/napari-locpix/workflows/tests/badge.svg)](https://github.com/oubino/napari-locpix/actions)
+[![codecov](https://codecov.io/gh/AlistairCurd/napari-locpix/branch/main/graph/badge.svg)](https://codecov.io/gh/AlistairCurd/napari-locpix)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-locpix)](https://napari-hub.org/plugins/napari-locpix)
 
 Load in SMLM data and annotate within napari
