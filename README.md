@@ -7,7 +7,7 @@
 [![codecov](https://codecov.io/gh/AlistairCurd/napari-locpix/branch/main/graph/badge.svg)](https://codecov.io/gh/AlistairCurd/napari-locpix)
 [![napari hub](https://img.shields.io/endpoint?url=https://api.napari-hub.org/shields/napari-locpix)](https://napari-hub.org/plugins/napari-locpix)
 
-Load in SMLM data and annotate within napari
+Annotate point cloud data in napari (e.g. from single molecule localisation microscopy/SMLM)
 
 ----------------------------------
 
@@ -124,7 +124,7 @@ If you encounter any problems, please [file an issue] along with a detailed desc
 [Mozilla Public License 2.0]: https://www.mozilla.org/media/MPL/2.0/index.txt
 [cookiecutter-napari-plugin]: https://github.com/napari/cookiecutter-napari-plugin
 
-[file an issue]: https://github.com/oubino/napari-locpix/issues
+[file an issue]: https://github.com/AlistairCurd/napari-locpix/issues
 
 [napari]: https://github.com/napari/napari
 [tox]: https://tox.readthedocs.io/en/latest/
