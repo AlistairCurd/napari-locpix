@@ -35,14 +35,11 @@ Install napari via [pip]:
 
 You can install `napari-locpix` via [pip]:
 
-    pip install napari-locpix2
+    pip install napari-locpix
 
 To install latest development version :
 
     pip install git+https://github.com/AlistairCurd/napari-locpix.git
-
-> **Note:** `napari-locpix2` is the PyPI project name for this repository. The name on PyPI was changed from `napari-locpix` in `v0.0.8` to expedite new releases following the transfer of the repo from @oubino to @AlistairCurd.
-
 
 ## Usage
 
